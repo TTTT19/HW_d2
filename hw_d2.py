@@ -18,7 +18,7 @@ def get_age(birthday):
     return age
 
 
-class users_vk:
+class Users_VK:
     def __init__(self):
         # находим группы пользователя
 
@@ -28,12 +28,13 @@ class users_vk:
             user_id = requests.get('https://api.vk.com/method/users.get',
                                    {'access_token': access_token, 'v': 5.103})
         else:
-            user_id = requests.get('https://api.vk.com/method/users.get', {'access_token': access_token, 'user_ids':user_id, 'v': 5.103})
+            user_id = requests.get('https://api.vk.com/method/users.get',
+                                   {'access_token': access_token, 'user_ids': user_id, 'v': 5.103})
         self.user_id = user_id.json()['response'][0]['id']
 
-
         # Получаем группы:
-        groups = requests.get('https://api.vk.com/method/groups.get', {'access_token': access_token, 'user_id': self.user_id,'v': 5.103})
+        groups = requests.get('https://api.vk.com/method/groups.get',
+                              {'access_token': access_token, 'user_id': self.user_id, 'v': 5.103})
         try:
             groups_list = (groups.json()['response']['items'])
             self.group_id_for_param = groups_list
@@ -41,11 +42,9 @@ class users_vk:
             print("групп не найдено или они закрыты")
             self.group_id_for_param = []
 
-
-
         # находим данные пользователя
         person_data = requests.get('https://api.vk.com/method/users.get',
-                                   {'access_token': access_token, 'user_ids':self.user_id,'v': 5.103,
+                                   {'access_token': access_token, 'user_ids': self.user_id, 'v': 5.103,
                                     'fields': 'sex, bdate, city, interests,relation'})
         person_data_2 = (person_data.json()['response'])
         data = copy.copy(person_data_2)
@@ -145,7 +144,6 @@ class users_vk:
             except:
                 top_10['top3photo'] = 'Фото нет или не загружается'
 
-
     def dump_into_json(self, top_10_list):
         with open("groups.json", "w", encoding="utf-8") as file:
             json.dump(top_10_list, file)
@@ -168,7 +166,7 @@ class users_vk:
                 top_10['interests'] = "нет данных"
 
 
-class db_work:
+class DB_Work:
     def __init__(self):
         self.conn = psycopg2.connect(dbname='netology_test', user='netology_user', password='test')
         self.cur = self.conn.cursor()
@@ -207,11 +205,9 @@ class db_work:
 
 
 def vkinder():
-
-
     # 2) Создаем нашего пользователя получачем по нему все данные
 
-    new_user = users_vk()
+    new_user = Users_VK()
 
     # 4) Находим список людей и сравниваем их интересы со своими (Количество совпадений вписываем в дополнительный эллементы словаря "match"
 
@@ -232,7 +228,6 @@ def vkinder():
 
     top_20_list = new_user.all_match(top_20_list)
 
-
     # 9) Сортируем по количеству набранных балов
 
     top_20_list = sorted(top_20_list, key=lambda key: key['match_count'], reverse=True)
@@ -240,7 +235,6 @@ def vkinder():
     # 10) Отбираем первые 10 аккаунтов в отсортированном списке
 
     top_10_list = top_20_list[:10]
-
 
     # 11) ищем профильные фотографии/ внутри сортируем по количеству лайков и оставляем первые 3
 
@@ -254,7 +248,7 @@ def vkinder():
 
     # 13) Записываем в базу
 
-    work_with_base = db_work()
+    work_with_base = DB_Work()
     work_with_base.create_db()
     work_with_base.add_top_10_list(top_10_list)
     print('данные выгружены в БД')
